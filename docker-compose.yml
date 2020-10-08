@@ -1,0 +1,88 @@
+version: '3'
+
+services:
+  fpm:
+    build:
+      context: php${PHP_VERSION}/fpm
+      args:
+        PHP_ENABLE_REDIS: ${PHP_ENABLE_REDIS}
+        PHP_ENABLE_XDEBUG: ${PHP_ENABLE_XDEBUG}
+        PHP_ENABLE_MONGODB: ${PHP_ENABLE_MONGODB}
+    ports:
+      - ${PHP_FPM_PORT}:9000
+    volumes:
+      - ./project:/var/www/project
+    depends_on:
+      - mariadb
+      - redis
+      # - mongodb
+
+  cli:
+    build:
+      context: php${PHP_VERSION}/cli
+      args:
+        NODE_VERSION: ${NODE_VERSION}
+        PHP_ENABLE_REDIS: ${PHP_ENABLE_REDIS}
+        PHP_ENABLE_XDEBUG: ${PHP_ENABLE_XDEBUG}
+        PHP_ENABLE_MONGODB: ${PHP_ENABLE_MONGODB}
+        LARAVEL_ENABLE_HORIZON: ${LARAVEL_ENABLE_HORIZON}
+    working_dir: /var/www/project
+    volumes:
+      - ./project:/var/www/project
+    depends_on:
+      - mariadb
+      - redis
+      # - mongodb
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - ${NGINX_PORT}:80
+    volumes:
+      - ./project:/var/www/project
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:cached
+    environment:
+      - PHP_FPM_PORT=${PHP_FPM_PORT}
+    depends_on:
+      - fpm
+  
+  mariadb:
+    image: mariadb:${MARIADB_VERSION}
+    ports:
+      - ${MARIADB_PORT}:3306
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MARIADB_DATABASE_NAME}
+      # - MYSQL_USER=admin
+      # - MYSQL_PASSWORD=admin
+      - TERM=meh
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_HOST=mariadb
+      # - PMA_ARBITRARY=1
+    links:
+      - mariadb
+    ports:
+      - ${PHPMYADMIN_PORT}:80
+
+  # mongodb:
+  #   image: mongo:${MONGODB_VERSION}
+  #   ports:
+  #     - ${MONGODB_PORT}:27017
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ROOT_USERNAME}
+  #     MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD}
+  #   volumes:
+  #     - ./data/mongodb:/data/db
+
+  redis:
+    image: redis:alpine
+
+  mailcatcher:
+    image: sj26/mailcatcher
+    ports:
+      - ${MAILCATCHER_PORT}:1080
