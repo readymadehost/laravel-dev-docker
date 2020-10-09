@@ -7,7 +7,7 @@ A development docker for every laravel project
 
 - Build for laravel and has cli tools
 - Bundle of `fpm`, `cli`, `nginx`, `mariadb`, `phpmyadmin`, `mongodb`, `redis` and `emailcatcher` containers
-- Latest php7.4 and others coming soon...
+- Latest php7.4, php7.3, php7.2 and php7.1 supported
 - Latest database mariadb10, mongodb4 and other versions supported
 - Latest node14.x, node13.x, node12.x, ... supported
 - Included laravel, composer and node cli
