@@ -7,11 +7,10 @@ A development docker for every laravel project
 
 - Build for laravel and has cli tools
 - Bundle of `fpm`, `cli`, `nginx`, `mariadb`, `phpmyadmin`, `mongodb`, `redis` and `emailcatcher` containers
-- Latest php7.4, php7.3, php7.2 and php7.1 supported
-- Latest database mariadb10, mongodb4 and other versions supported
-- Latest node14.x, node13.x, node12.x, ... supported
-- Included laravel, composer and node cli
-- Support for laravel horizon
+- PHP 5.5, 5.6, 7.0, 7.1, 7.2, 7.3, 7.4, 8.0 and 8.1 supported
+- Database mariadb 10.x, mongodb 4.x ... supported
+- Node 14.x, 16.x, 17.x, ... supported
+- Included laravel, composer, node cli and yarn cli
 - Included emailcatcher with smtp and web view
 - Support for PhpStorm or VSCode + WSL2/docker-desktop setup
 - Support for xdebug included check `.env` file
@@ -23,7 +22,7 @@ A development docker for every laravel project
 - `cd project-docker`
 - `mkdir project` or `git clone <some_git_repo_url> project` for existing project
 - `cp .env.sample .env` and review `.env` file
-- `docker-compose build`
+- `docker-compose build` only required if you edit `docker-compose.yml` to enable build
 - `docker-compose up -d`
 - `docker-compose exec cli bash`
 - `laravel -V`
@@ -67,7 +66,11 @@ Laravel horizon is disabled by default. Check `.env` to enable but only after yo
 
 ## Mailcatcher support
 
-Mailcatcher service is included, can be accessed using URL and can be configured using smtp check `.env` for more info.
+Mailcatcher service is included, can be accessed using URL and can be configured using smtp:-
+
+```
+smtp://mailcatcher:1025
+```
 
 
 ## Mongodb support
@@ -88,12 +91,19 @@ Simply add remote docker-compose php cli interpreter (exec with docker-compose.y
 
 With vscode's remote container extension, we can simply connect into cli container.
 
+## Pre build docker image
 
-## For development usages
+- `readymadehost/laravel-dev-docker-php{PHP_VERSION}-cli:latest`
+- `readymadehost/laravel-dev-docker-php{PHP_VERSION}-fpm:latest`
 
-- Clone this repo and pull on update. ReadyMadeHost cli tool coming soon...
 
+## Quick Link
 
-## For production usages
+* Easy installation of PHP extensions in official PHP Docker images
+    - https://github.com/mlocati/docker-php-extension-installer
 
-- Current docker setup is for development only. Planning for ReadyMadeHost coming soon...
+* MailCatcher
+    - https://github.com/sj26/mailcatcher
+
+* ReadyMadeHost docker hub
+    - https://hub.docker.com/orgs/readymadehost

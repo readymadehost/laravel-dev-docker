@@ -3,55 +3,15 @@ FROM php:7.4-cli
 LABEL maintainer="ReadyMadeHost http://readymadehost.com"
 
 # Installing required packages
-RUN apt-get update && apt-get upgrade -y
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
-	apt-transport-https \
-	libicu-dev \
-    libonig-dev \
-    libzip-dev \
-    libpng-dev \
-    libcurl4-openssl-dev \
-    pkg-config \
-    libssl-dev \
-    git \
-    vim \
-    zip \
-    unzip \
-    wget \
-    screenfetch \
-    mariadb-client
-
-# Installing extensions
-RUN docker-php-ext-install \
-	pdo_mysql \
-	intl \
-	mbstring \
+RUN apt-get update
+RUN apt-get install --no-install-recommends -y procps \
+	curl \
+	git \
+	vim \
 	zip \
-	exif \
-	pcntl \
-	bcmath \
-	fileinfo \
-	opcache \
-	gd
-
-# Installing other extensions but enabled dynamically
-RUN pecl install redis
-# RUN docker-php-ext-enable redis
-RUN pecl install xdebug
-# RUN docker-php-ext-enable xdebug
-RUN pecl install mongodb
-# RUN docker-php-ext-enable mongodb
-
-# Updating php.ini
-ADD conf/php.ini /usr/local/etc/php/php.ini
-
-# Installing composer
-VOLUME /root/.composer/cache
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Installing laravel installer
-RUN composer global require laravel/installer
-RUN echo 'export PATH="$HOME/.composer/vendor/bin:$PATH"' >> ~/.bashrc
+	unzip \
+	wget
+RUN apt-get install --no-install-recommends -y mariadb-client
 
 ARG NODE_VERSION
 ENV NODE_VERSION ${NODE_VERSION}
@@ -60,21 +20,56 @@ ENV NODE_VERSION ${NODE_VERSION}
 RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION} | bash -
 RUN apt-get -y install nodejs
 
+# Installing yarn using npm
+RUN npm install --global yarn
+
+# Installing extensions
+RUN curl -L https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions \
+    -o /usr/local/bin/install-php-extensions && chmod +x /usr/local/bin/install-php-extensions
+
+# Installing extensions
+RUN install-php-extensions \
+	pdo_mysql \
+	intl \
+	mbstring \
+	zip \
+	exif \
+	pcntl \
+	bcmath \
+	opcache \
+	gd \
+	imagick \
+	apcu \
+	@composer
+
+# Installing other extensions but enabled dynamically
+RUN IPE_DONT_ENABLE=1 install-php-extensions amqp \
+	redis \
+	mongodb \
+	xdebug
+
+# Updating php.ini
+ADD conf/php.ini /usr/local/etc/php/php.ini
+
+# Installing laravel installer
+RUN composer global require laravel/installer
+RUN echo 'export PATH="$HOME/.composer/vendor/bin:$PATH"' >> ~/.bashrc
+
 # Manage project and add scripts
-RUN mkdir /var/www/project
+RUN mkdir -p /var/www/project
 ADD manage-project-permission.sh /root/manage-project-permission.sh
 RUN chmod +x /root/manage-project-permission.sh
 RUN echo 'alias mpp="/root/manage-project-permission.sh"' >> /root/.bashrc
 RUN /root/manage-project-permission.sh
 
+ARG PHP_ENABLE_AMQP
+ENV PHP_ENABLE_AMQP ${PHP_ENABLE_AMQP}
 ARG PHP_ENABLE_REDIS
 ENV PHP_ENABLE_REDIS ${PHP_ENABLE_REDIS}
 ARG PHP_ENABLE_XDEBUG
 ENV PHP_ENABLE_XDEBUG ${PHP_ENABLE_XDEBUG}
 ARG PHP_ENABLE_MONGODB
 ENV PHP_ENABLE_MONGODB ${PHP_ENABLE_MONGODB}
-ARG LARAVEL_ENABLE_HORIZON
-ENV LARAVEL_ENABLE_HORIZON ${LARAVEL_ENABLE_HORIZON}
 
 ADD docker-entrypoint.sh /root/docker-entrypoint.sh
 RUN chmod +x /root/docker-entrypoint.sh
