@@ -59,11 +59,6 @@ A development docker for every laravel project
 ```
 
 
-## Laravel horizon support
-
-Laravel horizon is disabled by default. Check `.env` to enable but only after your project includes horizon.
-
-
 ## Mailcatcher support
 
 Mailcatcher service is included, can be accessed using URL and can be configured using smtp:-
